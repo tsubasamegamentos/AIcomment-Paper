@@ -1312,6 +1312,7 @@
         showSavedBanner();
       }
       updateHeaderUser();
+      initFileInput();
 
       // Drag & drop
       const uploadArea = document.getElementById('upload-area');
@@ -1325,8 +1326,13 @@
       uploadArea.addEventListener('drop', e => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
-        if (e.dataTransfer.files.length > 0) {
-          processFile(e.dataTransfer.files[0]);
+        const files = e.dataTransfer.files;
+        if (files.length > 1 && userTier !== 'premium') {
+          alert('エラー：1ファイルしかアップロードできません。\n\n※複数ファイルを同時に読み込んで解析したい場合は、プレミアムプランへアップグレードしてください。');
+          return;
+        }
+        if (files.length > 0) {
+          processFile(files[0]);
         }
       });
     });
@@ -1462,9 +1468,23 @@
     /* ============================================
        FILE HANDLING (PDF / Word / PPT)
        ============================================ */
+    function initFileInput() {
+      const fileInput = document.getElementById('file-input');
+      if (userTier === 'premium') {
+        fileInput.setAttribute('multiple', '');
+      } else {
+        fileInput.removeAttribute('multiple');
+      }
+    }
+
     function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) processFile(file);
+      const files = event.target.files;
+      if (files.length > 1 && userTier !== 'premium') {
+        alert('エラー：1ファイルしかアップロードできません。\n\n※複数ファイルを同時に読み込んで解析したい場合は、プレミアムプランへアップグレードしてください。');
+        event.target.value = '';
+        return;
+      }
+      if (files[0]) processFile(files[0]);
     }
 
     async function processFile(file) {
